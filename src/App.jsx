@@ -743,11 +743,11 @@ function ProfileScreen({ orders }) {
 
   const openSupport = () => {
     const tg = window.Telegram?.WebApp;
+    const url = `https://t.me/gameandpay_bot?start=support_${Date.now()}`;
     if (tg) {
-      // Передаём параметр support — бот сразу активирует режим поддержки
-      tg.openTelegramLink("https://t.me/gameandpay_bot?start=support");
+      tg.openTelegramLink(url);
     } else {
-      window.open("https://t.me/gameandpay_bot?start=support", "_blank");
+      window.open(url, "_blank");
     }
   };
 
@@ -1019,15 +1019,42 @@ function OrderDetailScreen({ order, onBack }) {
 
 // ─── ROOT ─────────────────────────────────────────────────────
 export default function App() {
-  const [onboarded, setOnboarded] = useState(false);
+  const [onboarded, setOnboarded] = useState(
+    () => localStorage.getItem("gp_onboarded") === "true"
+  );
   const [loading, setLoading] = useState(true);
   const [screen, setScreen] = useState("home");
-  const [tab, setTab] = useState("home");
+  const [tab, setTab] = useState(
+    () => localStorage.getItem("gp_tab") || "home"
+  );
   const [selProduct, setSelProduct] = useState(null);
   const [selVariant, setSelVariant] = useState(0);
   const [selOrder, setSelOrder] = useState(null);
   const [error, setError] = useState(null);
-  const [orders, setOrders] = useState(mockOrders);
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem("gp_orders");
+      return saved ? JSON.parse(saved) : mockOrders;
+    } catch { return mockOrders; }
+  });
+
+  // Восстанавливаем экран при старте
+  useEffect(() => {
+    const savedTab = localStorage.getItem("gp_tab") || "home";
+    setTab(savedTab);
+    setScreen(savedTab);
+  }, []);
+
+  // Сохраняем заказы при изменении
+  useEffect(() => {
+    localStorage.setItem("gp_orders", JSON.stringify(orders));
+  }, [orders]);
+
+  // Сохраняем онбординг
+  const handleOnboardDone = () => {
+    localStorage.setItem("gp_onboarded", "true");
+    setOnboarded(true);
+  };
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -1042,8 +1069,8 @@ export default function App() {
 
   const goProduct = (p) => { setSelProduct(p); setScreen("product"); };
   const goBuy = (p, vi) => { setSelProduct(p); setSelVariant(vi); setScreen("payment"); };
-  const goHome = () => { setScreen("home"); setTab("home"); setError(null); };
-  const goTab = (t) => { setTab(t); setScreen(t); };
+  const goHome = () => { setScreen("home"); setTab("home"); setError(null); localStorage.setItem("gp_tab", "home"); };
+  const goTab = (t) => { setTab(t); setScreen(t); localStorage.setItem("gp_tab", t); };
   const goOrder = (o) => { setSelOrder(o); setScreen("orderDetail"); };
 
   const handleSuccess = (newOrder) => {
@@ -1069,7 +1096,7 @@ export default function App() {
           display: "flex", flexDirection: "column",
           boxShadow: isTg ? "none" : "0 30px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)",
         }}>
-          <OnboardingScreen onDone={() => setOnboarded(true)} />
+          <OnboardingScreen onDone={handleOnboardDone} />
         </div>
       </div>
     );
