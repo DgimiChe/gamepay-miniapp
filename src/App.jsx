@@ -744,9 +744,10 @@ function ProfileScreen({ orders }) {
   const openSupport = () => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
-      tg.openTelegramLink("https://t.me/gameandpay_bot");
+      // Передаём параметр support — бот сразу активирует режим поддержки
+      tg.openTelegramLink("https://t.me/gameandpay_bot?start=support");
     } else {
-      window.open("https://t.me/gameandpay_bot", "_blank");
+      window.open("https://t.me/gameandpay_bot?start=support", "_blank");
     }
   };
 
