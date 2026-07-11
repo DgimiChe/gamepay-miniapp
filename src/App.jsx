@@ -704,7 +704,7 @@ function OrdersScreen({ orders, onOrder }) {
   );
 }
 
-function ProfileScreen({ orders }) {
+function ProfileScreen({ orders, onSupport }) {
   const totalSpent = orders.reduce((sum, o) => sum + o.price, 0);
   const cashback = Math.floor(totalSpent * 0.03);
   const [refCopied, setRefCopied] = useState(false);
@@ -739,16 +739,6 @@ function ProfileScreen({ orders }) {
       setTimeout(() => setRefCopied(false), 2000);
     };
     copy(refLink);
-  };
-
-  const openSupport = () => {
-    const tg = window.Telegram?.WebApp;
-    const url = `https://t.me/gameandpay_bot?start=support_${Date.now()}`;
-    if (tg) {
-      tg.openTelegramLink(url);
-    } else {
-      window.open(url, "_blank");
-    }
   };
 
   const stats = [
@@ -812,8 +802,8 @@ function ProfileScreen({ orders }) {
       </div>
 
       <div style={{ borderTop: `1px solid ${C.border}`, marginBottom: 12 }} />
-      <button onClick={openSupport}
-        style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "border-color 0.2s" }}>
+      <button onClick={() => onSupport()}
+        style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
         <IcoSupport size={24} />
         <div style={{ textAlign: "left", flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>Служба поддержки</div>
@@ -821,6 +811,119 @@ function ProfileScreen({ orders }) {
         </div>
         <span style={{ color: C.muted, fontSize: 18 }}>›</span>
       </button>
+    </div>
+  );
+}
+
+// ─── ЭКРАН ПОДДЕРЖКИ ─────────────────────────────────────────
+function SupportScreen({ onBack }) {
+  const [text, setText] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | sending | sent | error
+
+  const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+  const userId = tgUser?.id || "0";
+  const userName = tgUser?.first_name || "Пользователь";
+  const username = tgUser?.username ? `@${tgUser.username}` : `ID: ${userId}`;
+
+  const sendMessage = async () => {
+    if (!text.trim()) return;
+    setStatus("sending");
+
+    try {
+      // При деплое backend — заменить на реальный POST /api/support
+      // const res = await fetch("/api/support", { method: "POST", ... });
+
+      // Временное решение через Telegram Bot API напрямую
+      const BOT_TOKEN = process.env.REACT_APP_BOT_TOKEN;
+      const SUPPORT_CHAT_ID = process.env.REACT_APP_SUPPORT_CHAT_ID || "-1004361489413";
+      const message = `📩 *Новое обращение в поддержку*\n\n👤 ${userName} ${username}\n🆔 User ID: \`${userId}\`\n\n💬 *Сообщение:*\n${text}`;
+
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: SUPPORT_CHAT_ID,
+          text: message,
+          parse_mode: "Markdown"
+        })
+      });
+
+      if (res.ok) {
+        setStatus("sent");
+        setText("");
+      } else {
+        setStatus("error");
+      }
+    } catch (e) {
+      setStatus("error");
+    }
+  };
+
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "0 16px 24px" }}>
+      <button onClick={onBack} style={{ background: "none", border: "none", color: C.accentLight, fontSize: 14, cursor: "pointer", padding: "16px 0 12px", display: "flex", alignItems: "center", gap: 6 }}>
+        ← Назад
+      </button>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+        <IcoSupport size={28} />
+        <div style={{ fontSize: 18, fontWeight: 800, color: C.text }}>Поддержка</div>
+      </div>
+
+      {status === "sent" ? (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
+          <div style={{ marginBottom: 16 }}><IcoSuccess size={72} /></div>
+          <div style={{ fontSize: 20, fontWeight: 800, color: C.text, marginBottom: 8 }}>Отправлено!</div>
+          <div style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, marginBottom: 28 }}>
+            Мы ответим в течение 10 минут.<br />Ответ придёт в чат с ботом<br />@gameandpay_bot
+          </div>
+          <button onClick={onBack}
+            style={{ background: `linear-gradient(135deg, ${C.accent}, #9333EA)`, border: "none", borderRadius: 14, padding: "13px 32px", color: "#fff", fontSize: 14, fontWeight: 700, cursor: "pointer" }}>
+            Вернуться
+          </button>
+        </div>
+      ) : (
+        <>
+          <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: C.muted, lineHeight: 1.7 }}>
+              Опиши свою проблему — мы ответим в течение 10 минут. Ответ придёт в чат с ботом <span style={{ color: C.accentLight }}>@gameandpay_bot</span>
+            </div>
+          </div>
+
+          <div style={{ fontSize: 12, color: C.muted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 1 }}>Твоё сообщение</div>
+          <textarea
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="Опиши проблему подробно..."
+            rows={6}
+            style={{
+              width: "100%", background: C.card, border: `1px solid ${text ? C.accent + "66" : C.border}`,
+              borderRadius: 12, padding: "12px 14px", color: C.text, fontSize: 13,
+              outline: "none", resize: "none", boxSizing: "border-box",
+              fontFamily: "'Inter', -apple-system, sans-serif", lineHeight: 1.6,
+              transition: "border-color 0.2s", marginBottom: 12
+            }}
+          />
+
+          {status === "error" && (
+            <div style={{ background: C.error + "22", border: `1px solid ${C.error}44`, borderRadius: 10, padding: "10px 14px", marginBottom: 12, fontSize: 12, color: C.error }}>
+              ❌ Не удалось отправить. Проверь соединение и попробуй снова.
+            </div>
+          )}
+
+          <button onClick={sendMessage} disabled={!text.trim() || status === "sending"}
+            style={{
+              width: "100%", border: "none", borderRadius: 14, padding: "15px",
+              background: !text.trim() ? C.border : `linear-gradient(135deg, ${C.accent}, #9333EA)`,
+              color: "#fff", fontSize: 15, fontWeight: 700,
+              cursor: !text.trim() ? "not-allowed" : "pointer",
+              boxShadow: text.trim() ? `0 4px 20px ${C.accent}55` : "none",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8
+            }}>
+            {status === "sending" ? "Отправляем..." : (<><IcoSupport size={20} /> Отправить</>)}
+          </button>
+        </>
+      )}
     </div>
   );
 }
@@ -1113,14 +1216,15 @@ export default function App() {
       case "success": return <SuccessScreen product={selProduct} order={selOrder} onHome={goHome} />;
       case "orders": return <OrdersScreen orders={orders} onOrder={goOrder} />;
       case "orderDetail": return <OrderDetailScreen order={selOrder} onBack={() => setScreen("orders")} />;
-      case "profile": return <ProfileScreen orders={orders} />;
+      case "profile": return <ProfileScreen orders={orders} onSupport={() => setScreen("support")} />;
+      case "support": return <SupportScreen onBack={() => setScreen("profile")} />;
       default: return <HomeScreen onProduct={goProduct} />;
     }
   };
 
   const isTelegram = !!window.Telegram?.WebApp?.initData;
 
-  const showTab = !["payment", "success", "orderDetail"].includes(screen);
+  const showTab = !["payment", "success", "orderDetail", "support"].includes(screen);
 
   return (
     <div style={{
