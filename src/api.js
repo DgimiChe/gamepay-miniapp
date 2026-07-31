@@ -87,6 +87,21 @@ async function withRetry(operation, maxRetries = API.retries, delay = API.retryD
 }
 
 export async function fetchCatalog() {
+  // Запрашиваем сразу все товары (2000 > 1770 текущих)
+  const data = await withRetry(() => apiFetch(
+    `${API.endpoints.catalog}?show_out_of_stock=true&page=1&per_page=2000`
+  ));
+
+  return {
+    products: data.products || [],
+    rate: data.rate || 95,
+    markup_percent: data.markup_percent || 15,
+    total_products: data.products?.length || 0,
+    total_pages: 1,
+    page: 1,
+    per_page: data.products?.length || 0,
+  };
+}
   const perPage = 200;
   let allProducts = [];
   let page = 1;
