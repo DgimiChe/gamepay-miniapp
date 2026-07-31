@@ -2,6 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { C, CATEGORY_MAP, getUiCategory, getProductIconType } from "./config";
 import { 
   fetchCatalog, 
+  createOrder,
+  createPayment,
+  checkHealth,
   createOrder, 
   checkHealth,
   ApiError, 
@@ -625,7 +628,7 @@ function PaymentScreen({ product, variantIdx, onSuccess, onBack }) {
     setError(null);
 
     try {
-      // Создаём бронь через API
+      // 1. Создаём бронь через API
       const order = await createOrder(
         tgUser?.id || 0,
         variant.sku_id,
@@ -634,21 +637,12 @@ function PaymentScreen({ product, variantIdx, onSuccess, onBack }) {
       );
 
       setOrderData(order);
-      setStep(2);
 
-      // TODO: следующий этап — редирект на Robokassa
-      // Пока имитируем успешную оплату для демонстрации
-      setTimeout(() => {
-        const newOrder = {
-          id: order.external_id,
-          product: `${product.name} ${variant.name}`,
-          price: order.price_rub,
-          date: `Сегодня, ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2, "0")}`,
-          status: "reserved",
-          code: null, // код придёт после оплаты и webhook
-        };
-        onSuccess(newOrder);
-      }, 1500);
+      // 2. Создаём платёж в Robokassa
+      const payment = await createPayment(order.order_id);
+
+      // 3. Редирект на страницу оплаты Robokassa
+      window.location.href = payment.payment_url;
 
     } catch (err) {
       setStep(0);
@@ -659,7 +653,7 @@ function PaymentScreen({ product, variantIdx, onSuccess, onBack }) {
       else if (err.statusCode === 409) message = "Товар закончился. Попробуй позже.";
       else if (err.statusCode === 404) message = "Товар не найден в каталоге.";
       setError(message);
-      console.error("Order creation error:", err);
+      console.error("Order/Payment error:", err);
     }
   };
 

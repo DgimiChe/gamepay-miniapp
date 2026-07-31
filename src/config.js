@@ -145,6 +145,13 @@ export const API = {
   endpoints: {
     catalog: "/api/catalog",           // GET — каталог товаров
     orders: "/api/orders",           // POST — создание брони
+    payments: "/api/payments/create",  // POST — создание платежа Robokassa
+    sync: "/api/catalog/sync",        // POST — ручная синхронизация
+    syncStatus: "/api/catalog/sync-status",  // GET — статус синхронизации
+    syncSettings: "/api/catalog/sync-settings", // PATCH — настройки
+  },
+    catalog: "/api/catalog",           // GET — каталог товаров
+    orders: "/api/orders",           // POST — создание брони
     sync: "/api/catalog/sync",        // POST — ручная синхронизация
     syncStatus: "/api/catalog/sync-status",  // GET — статус синхронизации
     syncSettings: "/api/catalog/sync-settings", // PATCH — настройки

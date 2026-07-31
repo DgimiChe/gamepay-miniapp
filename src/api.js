@@ -126,7 +126,13 @@ export async function createOrder(telegramId, skuId, quantity = 1, username = nu
   }));
 }
 
-export async function fetchSyncStatus() {
+export async function createPayment(orderId) {
+  return withRetry(() => apiFetch(API.endpoints.payments, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ order_id: orderId }),
+  }));
+}
   return withRetry(() => apiFetch(API.endpoints.syncStatus), 1);
 }
 
