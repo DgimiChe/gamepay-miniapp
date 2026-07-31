@@ -86,7 +86,35 @@ async function withRetry(operation, maxRetries = API.retries, delay = API.retryD
   throw lastError;
 }
 
-export async function fetchCatalog(page = 1, perPage = 2000) {
+export async function fetchCatalog() {
+  const perPage = 200;
+  let allProducts = [];
+  let page = 1;
+  let totalPages = 1;
+  let rate = 95;
+  let markupPercent = 15;
+
+  do {
+    const data = await withRetry(() => apiFetch(
+      `${API.endpoints.catalog}?show_out_of_stock=true&page=${page}&per_page=${perPage}`
+    ));
+    allProducts = allProducts.concat(data.products || []);
+    rate = data.rate || rate;
+    markupPercent = data.markup_percent || markupPercent;
+    totalPages = data.total_pages ?? totalPages;
+    page++;
+  } while (page <= totalPages);
+
+  return {
+    products: allProducts,
+    rate,
+    markup_percent: markupPercent,
+    total_products: allProducts.length,
+    total_pages: 1,
+    page: 1,
+    per_page: allProducts.length,
+  };
+}
   const data = await withRetry(() => apiFetch(
     `${API.endpoints.catalog}?show_out_of_stock=true&page=${page}&per_page=${perPage}`
   ));
