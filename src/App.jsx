@@ -501,6 +501,10 @@ function ProductScreen({ product, onBack, onBuy }) {
   };
   const color = getColor();
 
+  const selectedSku = variants[sel];
+  const isOutOfStock = selectedSku?.stock === 0;
+  const isDisabled = (needsId && !pid) || isOutOfStock;
+
   return (
     <div style={{ flex: 1, overflowY: "auto", padding: "0 16px 24px" }}>
       <button onClick={onBack} style={{ background: "none", border: "none", color: C.accentLight, fontSize: 14, cursor: "pointer", padding: "16px 0 12px", display: "flex", alignItems: "center", gap: 6 }}>
@@ -549,13 +553,28 @@ function ProductScreen({ product, onBack, onBuy }) {
       <div style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 12, color: C.muted, marginBottom: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1 }}>Номинал</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {variants.map((sku, i) => (
-            <button key={sku.sku_id || i} onClick={() => setSel(i)}
-              style={{ background: sel === i ? C.accent + "33" : C.card, border: `2px solid ${sel === i ? C.accent : C.border}`, borderRadius: 12, padding: "12px 8px", cursor: "pointer", transition: "all 0.15s", boxShadow: sel === i ? `0 0 16px ${C.accent}44` : "none" }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: C.text }}>{sku.name}</div>
-              <div style={{ fontSize: 13, color: sel === i ? C.accentLight : C.muted }}>{sku.price_rub} ₽</div>
-            </button>
-          ))}
+          {variants.map((sku, i) => {
+            const skuOutOfStock = sku.stock === 0;
+            return (
+              <button key={sku.sku_id || i} onClick={() => !skuOutOfStock && setSel(i)}
+                disabled={skuOutOfStock}
+                style={{ 
+                  background: skuOutOfStock ? C.card : (sel === i ? C.accent + "33" : C.card), 
+                  border: `2px solid ${skuOutOfStock ? C.border : (sel === i ? C.accent : C.border)}`, 
+                  borderRadius: 12, 
+                  padding: "12px 8px", 
+                  cursor: skuOutOfStock ? "not-allowed" : "pointer", 
+                  transition: "all 0.15s", 
+                  boxShadow: sel === i && !skuOutOfStock ? `0 0 16px ${C.accent}44` : "none",
+                  opacity: skuOutOfStock ? 0.6 : 1
+                }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: skuOutOfStock ? C.muted : C.text }}>{sku.name}</div>
+                <div style={{ fontSize: 13, color: skuOutOfStock ? C.error : (sel === i ? C.accentLight : C.muted) }}>
+                  {skuOutOfStock ? "Нет в наличии" : `${sku.price_rub} ₽`}
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -581,10 +600,10 @@ function ProductScreen({ product, onBack, onBuy }) {
         </div>
       </div>
 
-      <button onClick={() => onBuy(product, sel)} disabled={needsId && !pid}
-        style={{ width: "100%", background: needsId && !pid ? C.border : `linear-gradient(135deg, ${C.accent}, #9333EA)`, border: "none", borderRadius: 14, padding: "15px", color: "#fff", fontSize: 15, fontWeight: 700, cursor: needsId && !pid ? "not-allowed" : "pointer", boxShadow: needsId && !pid ? "none" : `0 4px 24px ${C.accent}55`, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+      <button onClick={() => onBuy(product, sel)} disabled={isDisabled}
+        style={{ width: "100%", background: isDisabled ? C.border : `linear-gradient(135deg, ${C.accent}, #9333EA)`, border: "none", borderRadius: 14, padding: "15px", color: "#fff", fontSize: 15, fontWeight: 700, cursor: isDisabled ? "not-allowed" : "pointer", boxShadow: isDisabled ? "none" : `0 4px 24px ${C.accent}55`, display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
         <IcoBuy size={22} />
-        Купить за {variants[sel]?.price_rub || 0} ₽
+        {isOutOfStock ? "Нет в наличии" : `Купить за ${selectedSku?.price_rub || 0} ₽`}
       </button>
 
       <div style={{ display: "flex", justifyContent: "center", gap: 16, marginTop: 14 }}>
@@ -593,8 +612,6 @@ function ProductScreen({ product, onBack, onBuy }) {
     </div>
   );
 }
-
-// ─── ЭКРАН: ОПЛАТА (PaymentScreen) — с API созданием заказа ───
 function PaymentScreen({ product, variantIdx, onSuccess, onBack }) {
   const [step, setStep] = useState(0); // 0: выбор, 1: обработка, 2: подтверждение
   const [error, setError] = useState(null);
