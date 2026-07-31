@@ -133,6 +133,7 @@ export async function createPayment(orderId) {
     body: JSON.stringify({ order_id: orderId }),
   }));
 }
+export async function fetchSyncStatus() {
   return withRetry(() => apiFetch(API.endpoints.syncStatus), 1);
 }
 
