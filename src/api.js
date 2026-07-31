@@ -116,6 +116,11 @@ export async function fetchCatalog() {
     per_page: allProducts.length,
   };
 }
+
+export async function createOrder(telegramId, skuId, quantity = 1, username = null) {
+    per_page: allProducts.length,
+  };
+}
   return withRetry(() => apiFetch(`${API.endpoints.catalog}?show_out_of_stock=true`));
 }
 
