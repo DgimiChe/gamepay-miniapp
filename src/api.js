@@ -87,7 +87,6 @@ async function withRetry(operation, maxRetries = API.retries, delay = API.retryD
 }
 
 export async function fetchCatalog() {
-  // Запрашиваем сразу все товары (2000 > 1770 текущих)
   const data = await withRetry(() => apiFetch(
     `${API.endpoints.catalog}?show_out_of_stock=true&page=1&per_page=2000`
   ));
@@ -100,34 +99,6 @@ export async function fetchCatalog() {
     total_pages: 1,
     page: 1,
     per_page: data.products?.length || 0,
-  };
-}
-  const perPage = 200;
-  let allProducts = [];
-  let page = 1;
-  let totalPages = 1;
-  let rate = 95;
-  let markupPercent = 20;
-
-  do {
-    const data = await withRetry(() => apiFetch(
-      `${API.endpoints.catalog}?show_out_of_stock=true&page=${page}&per_page=${perPage}`
-    ));
-    allProducts = allProducts.concat(data.products || []);
-    totalPages = data.total_pages || 1;
-    rate = data.rate || rate;
-    markupPercent = data.markup_percent ?? markupPercent;
-    page++;
-  } while (page <= totalPages);
-
-  return {
-    products: allProducts,
-    rate,
-    markup_percent: markupPercent,
-    total_products: allProducts.length,
-    total_pages: 1,
-    page: 1,
-    per_page: allProducts.length,
   };
 }
 
@@ -148,6 +119,7 @@ export async function createPayment(orderId) {
     body: JSON.stringify({ order_id: orderId }),
   }));
 }
+
 export async function fetchSyncStatus() {
   return withRetry(() => apiFetch(API.endpoints.syncStatus), 1);
 }
