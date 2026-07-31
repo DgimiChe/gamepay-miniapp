@@ -89,8 +89,6 @@ async function withRetry(operation, maxRetries = API.retries, delay = API.retryD
 export async function fetchCatalog() {
   return withRetry(() => apiFetch(`${API.endpoints.catalog}?show_out_of_stock=true`));
 }
-  return withRetry(() => apiFetch(API.endpoints.catalog));
-}
 
 export async function createOrder(telegramId, skuId, quantity = 1, username = null) {
   const body = { telegram_id: telegramId, sku_id: skuId, quantity };
