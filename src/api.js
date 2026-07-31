@@ -101,20 +101,6 @@ export async function fetchCatalog(page = 1, perPage = 2000) {
     per_page: data.per_page ?? perPage,
   };
 }
-  const data = await withRetry(() => apiFetch(
-    `${API.endpoints.catalog}?show_out_of_stock=true&page=1&per_page=2000`
-  ));
-
-  return {
-    products: data.products || [],
-    rate: data.rate || 95,
-    markup_percent: data.markup_percent || 15,
-    total_products: data.products?.length || 0,
-    total_pages: 1,
-    page: 1,
-    per_page: data.products?.length || 0,
-  };
-}
 
 export async function createOrder(telegramId, skuId, quantity = 1, username = null) {
   const body = { telegram_id: telegramId, sku_id: skuId, quantity };
