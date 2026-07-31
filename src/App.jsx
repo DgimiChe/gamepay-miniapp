@@ -5,8 +5,6 @@ import {
   createOrder,
   createPayment,
   checkHealth,
-  createOrder, 
-  checkHealth,
   ApiError, 
   NetworkError, 
   TimeoutError,
