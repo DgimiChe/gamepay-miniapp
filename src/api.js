@@ -87,7 +87,6 @@ async function withRetry(operation, maxRetries = API.retries, delay = API.retryD
 }
 
 export async function fetchCatalog() {
-  // Загружаем все страницы (1770 товаров / 200 per_page = ~9 запросов)
   const perPage = 200;
   let allProducts = [];
   let page = 1;
@@ -115,13 +114,6 @@ export async function fetchCatalog() {
     page: 1,
     per_page: allProducts.length,
   };
-}
-
-export async function createOrder(telegramId, skuId, quantity = 1, username = null) {
-    per_page: allProducts.length,
-  };
-}
-  return withRetry(() => apiFetch(`${API.endpoints.catalog}?show_out_of_stock=true`));
 }
 
 export async function createOrder(telegramId, skuId, quantity = 1, username = null) {
