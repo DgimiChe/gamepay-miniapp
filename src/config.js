@@ -144,16 +144,10 @@ export const API = {
   baseUrl: API_BASE_URL,
   endpoints: {
     catalog: "/api/catalog",           // GET — каталог товаров
-    orders: "/api/orders",           // POST — создание брони
+    orders: "/api/orders",             // POST — создание брони
     payments: "/api/payments/create",  // POST — создание платежа Robokassa
-    sync: "/api/catalog/sync",        // POST — ручная синхронизация
-    syncStatus: "/api/catalog/sync-status",  // GET — статус синхронизации
-    syncSettings: "/api/catalog/sync-settings", // PATCH — настройки
-  },
-    catalog: "/api/catalog",           // GET — каталог товаров
-    orders: "/api/orders",           // POST — создание брони
-    sync: "/api/catalog/sync",        // POST — ручная синхронизация
-    syncStatus: "/api/catalog/sync-status",  // GET — статус синхронизации
+    sync: "/api/catalog/sync",         // POST — ручная синхронизация
+    syncStatus: "/api/catalog/sync-status",    // GET — статус синхронизации
     syncSettings: "/api/catalog/sync-settings", // PATCH — настройки
   },
   timeout: 15000,     // 15 секунд — таймаут запроса
