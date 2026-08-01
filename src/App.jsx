@@ -10,6 +10,7 @@ import {
   TimeoutError,
   ValidationError 
 } from "./api";
+import AdminDashboard from "./AdminDashboard";
 
 // ─── ИКОНКИ (Neon Outline SVG) ─────────────────────────────────
 function Ico({ id, size = 24, c1 = "#7C3AED", c2 = "#A78BFA", sw = 1.8, children }) {
@@ -830,7 +831,7 @@ function OrdersScreen({ orders, onOrder }) {
 }
 
 // ─── ЭКРАН: ПРОФИЛЬ (ProfileScreen) ───────────────────────────
-function ProfileScreen({ orders, onSupport }) {
+function ProfileScreen({ orders, onSupport, onAdmin, isAdmin }) {
   const totalSpent = orders.reduce((sum, o) => sum + o.price, 0);
   const cashback = Math.floor(totalSpent * 0.03);
   const [refCopied, setRefCopied] = useState(false);
@@ -923,6 +924,17 @@ function ProfileScreen({ orders, onSupport }) {
         <div style={{ fontSize: 12, color: C.muted }}>Используй при следующей покупке от 500 ₽. Действует 90 дней.</div>
       </div>
 
+      {isAdmin && (
+        <button onClick={() => onAdmin()}
+          style={{ width: "100%", background: C.card, border: `1px solid ${C.primary}44`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+          <span style={{ fontSize: 20 }}>⚙️</span>
+          <div style={{ textAlign: "left", flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: C.text }}>Админ-панель</div>
+            <div style={{ fontSize: 11, color: C.muted }}>Статистика, заказы, настройки</div>
+          </div>
+          <span style={{ color: C.muted, fontSize: 18 }}>›</span>
+        </button>
+      )}
       <div style={{ borderTop: `1px solid ${C.border}`, marginBottom: 12 }} />
       <button onClick={() => onSupport()}
         style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
@@ -1106,6 +1118,7 @@ export default function App() {
   const [catalog, setCatalog] = useState(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [rate, setRate] = useState(95);
   const [markupPercent, setMarkupPercent] = useState(15);
 
@@ -1174,6 +1187,14 @@ export default function App() {
       tg.expand();
       tg.setHeaderColor("#0F0F1A");
       tg.setBackgroundColor("#0F0F1A");
+      
+      // Проверяем права админа
+      const userId = tg.initDataUnsafe?.user?.id;
+      if (userId) {
+        getMe(userId)
+          .then(data => setIsAdmin(data.is_admin || false))
+          .catch(() => setIsAdmin(false));
+      }
     }
   }, []);
 
@@ -1203,13 +1224,16 @@ export default function App() {
       case "success": return <SuccessScreen product={selProduct} order={selOrder} onHome={goHome} />;
       case "orders": return <OrdersScreen orders={orders} onOrder={goOrder} />;
       case "orderDetail": return <OrderDetailScreen order={selOrder} onBack={() => setScreen("orders")} />;
-      case "profile": return <ProfileScreen orders={orders} onSupport={() => setScreen("support")} />;
+      case "profile": return <ProfileScreen orders={orders} onSupport={() => setScreen("support")} onAdmin={() => setScreen("admin")} isAdmin={isAdmin} />;
       case "support": return <SupportScreen onBack={() => setScreen("profile")} />;
+      case "admin": return <AdminDashboard onBack={() => setScreen("profile")} />;
       default: return <HomeScreen onProduct={goProduct} />;
     }
   };
 
   const isTelegram = !!window.Telegram?.WebApp?.initData;
+  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+  const isAdmin = tgUserId === ADMIN_USER_ID;
   const showTab = !["payment", "success", "orderDetail", "support"].includes(screen);
 
   // ─── ОНБОРДИНГ ──────────────────────────────────────────────

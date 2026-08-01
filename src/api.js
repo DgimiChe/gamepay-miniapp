@@ -153,3 +153,11 @@ export async function fetchUserOrders(telegramId) {
   console.warn("fetchUserOrders not implemented yet");
   return [];
 }
+
+export async function getAdminStats() {
+  return withRetry(() => apiFetch("/api/admin/stats"), 1);
+}
+
+export async function getMe(telegramId) {
+  return withRetry(() => apiFetch(`/api/me?telegram_id=${telegramId}`), 1);
+}
