@@ -935,9 +935,7 @@ function ProfileScreen({ orders, onSupport, onAdmin, isAdmin }) {
           <span style={{ color: C.muted, fontSize: 18 }}>›</span>
         </button>
       )}
-      </div>
 
-      <div style={{ borderTop: `1px solid ${C.border}`, marginBottom: 12 }} />
       <button onClick={() => onSupport()}
         style={{ width: "100%", background: C.card, border: `1px solid ${C.border}`, borderRadius: 14, padding: "14px 16px", cursor: "pointer", display: "flex", alignItems: "center", gap: 12 }}>
         <IcoSupport size={24} />
