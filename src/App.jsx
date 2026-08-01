@@ -1190,10 +1190,17 @@ export default function App() {
       
       // Проверяем права админа
       const userId = tg.initDataUnsafe?.user?.id;
+      console.log("[Admin] userId =", userId);
       if (userId) {
         getMe(userId)
-          .then(data => setIsAdmin(data.is_admin || false))
-          .catch(() => setIsAdmin(false));
+          .then(data => {
+            console.log("[Admin] getMe response:", data);
+            setIsAdmin(data.is_admin || false);
+          })
+          .catch(err => {
+            console.error("[Admin] getMe error:", err);
+            setIsAdmin(false);
+          });
       }
     }
   }, []);
