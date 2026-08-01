@@ -935,10 +935,6 @@ function ProfileScreen({ orders, onSupport, onAdmin, isAdmin }) {
           <span style={{ color: C.muted, fontSize: 18 }}>›</span>
         </button>
       )}
-      {/* DEBUG: показываем userId и isAdmin */}
-      <div style={{ background: "#1a1a2e", borderRadius: 8, padding: 10, marginBottom: 12, fontSize: 11, color: "#888", fontFamily: "monospace" }}>
-        <div>userId: {window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "N/A"}</div>
-        <div>isAdmin: {String(isAdmin)}</div>
       </div>
 
       <div style={{ borderTop: `1px solid ${C.border}`, marginBottom: 12 }} />
