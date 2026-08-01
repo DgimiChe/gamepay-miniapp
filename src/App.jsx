@@ -4,7 +4,7 @@ import {
   fetchCatalog, 
   createOrder,
   createPayment,
-  checkHealth,
+  checkHealth, getMe,
   ApiError, 
   NetworkError, 
   TimeoutError,
