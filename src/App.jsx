@@ -1232,8 +1232,6 @@ export default function App() {
   };
 
   const isTelegram = !!window.Telegram?.WebApp?.initData;
-  const tgUserId = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-  const isAdmin = tgUserId === ADMIN_USER_ID;
   const showTab = !["payment", "success", "orderDetail", "support"].includes(screen);
 
   // ─── ОНБОРДИНГ ──────────────────────────────────────────────
